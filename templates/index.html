@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Text Summarizer</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.19.3/docxtemplater.min.js"></script>
+    <link rel="stylesheet" href="static\index.css" />
+  </head>
+  <style>
+    .text-white {
+      color: white;
+    }
+  </style>
+
+  <body style="font-family:Georgia; ">
+    <nav class="navbar" style="background-color:#6667ab; height: 70px ; display: flex;">
+      <a class="navbar-brand" style="font-size:25px; margin-top: 7px; color:aliceblue; margin-left: 120px; ">Text Summarizer</a>
+      <div id="loginStatus">
+        <button id="loginBtn" style="height: 50px; width: 160px; cursor:pointer; margin-top: 8px; margin-left: 850px; font-size: 18px; border-radius: 12px;" onclick="googleSignin()">Google Signin</button>
+        <button id="logoutBtn" style="display: none; height: 50px; width: 160px; cursor:pointer; margin-top: 8px; margin-left: 850px; font-size: 18px; border-radius: 12px;" onclick="googleSignout()">Google Signout</button>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <form action="/summary " method="post" id="uploadForm">
+            <div class="input" style="display:flex; justify-content: space-between; margin-top:80px; ">
+              <textarea id="textarea" name="data" cols=" 90 " rows="20 " style="background-color:#c2c2dd; ">{{ input_data }}</textarea>
+              <textarea name="out " id="textarea1" cols="90 " rows="20 " style="background-color:#c2c2dd; ">{{ result }}</textarea>
+            </div>
+            <div class="buttons" style="display:flex; margin-top: 30px; justify-content: space-between; ">
+              <div class="left" style="display:flex; ">
+                <input id="fileInput" type="file" accept=".docx" />
+                <input type="submit" class="btn btn-lg btn-warning" style="width: 90px; margin-left:20px; color:black; " />
+                <!-- <button type="submit" class=" btn btn-lg btn-warning " style="width: 90px; margin-left:20px; color:black; ">Submit</button> -->
+                <button class="btn btn-lg btn-warning" style="width: 90px; margin-left:20px;color:black;" onclick="Clear()">Clear</button>
+                <!-- <input type=" range " class="m-2 " min="20 " max="1000 " name="maxL " style="margin-left:20px; width: 90px; "> -->
+              </div>
+              <div class="right">
+                <button class="btn btn-lg btn-warning" style="width: 90px; margin-left:20px; color:black; " onclick="myFunction() ">Copy</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script>
+      function myFunction() {
+        /* Get the text field */
+        var copyText = document.getElementById('myInput ')
+      
+        /* Select the text field */
+        copyText.select()
+        copyText.setSelectionRange(0, 99999) /* For mobile devices */
+      
+        /* Copy the text inside the text field */
+        navigator.clipboard.writeText(copyText.value)
+      }
+    </script>
+    <script>
+      document.getElementById('fileInput').addEventListener('change', handleFileSelect)
+      
+      function handleFileSelect(event) {
+        const file = event.target.files[0]
+        if (!file) {
+          return
+        }
+      
+        const reader = new FileReader()
+      
+        reader.onload = function (event) {
+          const docxData = event.target.result
+          extractDocxContents(docxData)
+        }
+      
+        reader.readAsArrayBuffer(file)
+      }
+      
+      function extractDocxContents(docxData) {
+        const zip = new JSZip()
+        zip.loadAsync(docxData).then(function (zip) {
+          const docContent = zip.file('word/document.xml ').async('string ')
+          docContent.then(function (content) {
+            // Process the XML content to extract the text from the DOCX file.
+            const text = processXmlContent(content)
+            document.getElementById('textarea').value = text
+          })
+        })
+      }
+      
+      function processXmlContent(xmlContent) {
+        // Here you can use any XML processing library or regex to extract the text from the XML content.
+        // In this example, let's use a simple regex to remove the XML tags.
+        const textWithoutTags = xmlContent.replace(/<[^>]*>/g, '')
+        return textWithoutTags
+      }
+      
+      // Function to clear textarea on page reload
+      function Clear() {
+        const displayText = document.getElementById('textarea')
+        displayText.value = ' '
+      }
+    </script>
+  </body>
+</html>
